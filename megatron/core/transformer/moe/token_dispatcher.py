@@ -914,11 +914,7 @@ class MoEStagedAlltoAllDispatcher(MoETokenDispatcher):
         config: TransformerConfig,
         pg_collection: Optional[ProcessGroupCollection] = None,
     ) -> None:
-        super().__init__(
-            num_local_experts, 
-            local_expert_indices, 
-            config, 
-            pg_collection)
+        super().__init__(config, pg_collection)
         
     # TODO: @EZ Finish
 

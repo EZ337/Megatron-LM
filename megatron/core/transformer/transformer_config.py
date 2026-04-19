@@ -672,9 +672,9 @@ class TransformerConfig(ModelParallelConfig):
     specified capacity, similar to GShard, Switch-Transformer, and DeepSpeed-MoE. Note that this is
     currently unsupported so should remain False."""
 
-    moe_token_dispatcher_type: Literal['allgather', 'alltoall', 'flex'] = "allgather"
+    moe_token_dispatcher_type: Literal['allgather', 'alltoall', 'flex', 'stagedalltoall'] = "allgather"
     """The type of token dispatcher to use. The default is 'allgather'.
-    Options are 'allgather','alltoall' and 'flex'."""
+    Options are 'allgather','alltoall', 'stagedalltoall', and 'flex'."""
 
     moe_enable_deepep: bool = False
     """[Experimental] Enable DeepEP for efficient token dispatching and combine in MoE models."""
