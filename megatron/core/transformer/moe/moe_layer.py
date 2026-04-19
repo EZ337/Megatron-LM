@@ -23,6 +23,7 @@ from megatron.core.transformer.moe.token_dispatcher import (
     MoEAlltoAllTokenDispatcher,
     MoEFlexTokenDispatcher,
     MoETokenDispatcher,
+    MoEStagedAlltoAllDispatcher
 )
 from megatron.core.transformer.spec_utils import ModuleSpec, build_module
 from megatron.core.transformer.transformer_config import TransformerConfig
@@ -209,6 +210,13 @@ class MoELayer(BaseMoELayer):
             )
         elif config.moe_token_dispatcher_type == "flex":
             self.token_dispatcher = MoEFlexTokenDispatcher(
+                self.num_local_experts,
+                self.local_expert_indices,
+                config=self.config,
+                pg_collection=pg_collection,
+            )
+        elif config.moe_token_dispatcher_type == "stagedalltoall":
+            self.token_dispatcher = MoEStagedAlltoAllDispatcher(
                 self.num_local_experts,
                 self.local_expert_indices,
                 config=self.config,

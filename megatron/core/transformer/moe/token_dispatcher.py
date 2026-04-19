@@ -458,6 +458,10 @@ class MoEAlltoAllTokenDispatcher(MoETokenDispatcher):
         ]
 
         self.shared_experts = None
+        
+        # num_global_tokens_per_expert represents the number of tokens sent to each
+        # expert by all ranks.
+        self.num_global_tokens_per_expert : Optional[torch.Tensor] = None
 
     def set_shared_experts(self, shared_experts):
         """Set shared expert to the dispatcher."""
@@ -535,7 +539,8 @@ class MoEAlltoAllTokenDispatcher(MoETokenDispatcher):
             # num_global_tokens_per_expert represents the number of tokens sent to each
             # expert by all ranks.
             # [tp_size, ep_size, num_experts]
-            num_global_tokens_per_expert = (
+            # Stored for access later
+            self.num_global_tokens_per_expert = (    # I want to save this to the MoELayer
                 gather_from_sequence_parallel_region(
                     num_local_tokens_per_expert, group=self.tp_ep_group
                 )
@@ -543,7 +548,7 @@ class MoEAlltoAllTokenDispatcher(MoETokenDispatcher):
                 .transpose(0, 1)
             )
             # [tp_size, ep_size, num_experts] -> [tp_size, ep_size, num_local_experts]
-            num_global_tokens_per_local_expert = num_global_tokens_per_expert[
+            num_global_tokens_per_local_expert = self.num_global_tokens_per_expert[
                 :, :, self.local_expert_indices[0] : self.local_expert_indices[-1] + 1
             ].contiguous()
             # [tp_size, ep_size, num_local_experts] -> [tp_size, ep_size]
@@ -900,6 +905,22 @@ class MoEAlltoAllTokenDispatcher(MoETokenDispatcher):
 
         return tokens_per_expert
 
+
+class MoEStagedAlltoAllDispatcher(MoETokenDispatcher):
+    def __init__(
+        self,
+        num_local_experts: int,
+        local_expert_indices: List[int],
+        config: TransformerConfig,
+        pg_collection: Optional[ProcessGroupCollection] = None,
+    ) -> None:
+        super().__init__(
+            num_local_experts, 
+            local_expert_indices, 
+            config, 
+            pg_collection)
+        
+    # TODO: @EZ Finish
 
 class _DispatchManager(ABC):
     """
